@@ -22,6 +22,7 @@ ext {
 // -PincludeJavaDocs
 
 apply plugin: 'base'
+apply plugin: 'idea'
 apply plugin: "com.github.hierynomus.license-report"
 apply from: "$rootDir/gradle/License.gradle"
 
@@ -73,6 +74,7 @@ configure(leafProjects) {
     apply plugin: 'io.spring.dependency-management'
     apply plugin: "com.github.spotbugs" // Static Code analysis
     apply plugin: 'signing'
+    apply plugin: 'org.owasp.dependencycheck'
 
     compileJava.options.encoding = 'UTF-8'
     compileJava.options.compilerArgs += '--add-exports=java.base/sun.nio.ch=ALL-UNNAMED'
@@ -190,7 +192,9 @@ configure(leafProjects) {
 
             dependency 'org.hdrhistogram:HdrHistogram:2.1.10'
 
-            dependencySet(group: 'org.springframework', version: '5.3.32') {
+            dependency 'com.amazon.ion:ion-java:1.10.5'
+
+            dependencySet(group: 'org.springframework', version: '5.3.34') {
                 entry 'spring-context'
                 entry 'spring-web'
                 entry 'spring-webmvc'
