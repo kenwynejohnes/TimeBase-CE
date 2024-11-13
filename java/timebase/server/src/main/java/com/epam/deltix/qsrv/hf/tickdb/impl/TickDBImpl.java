@@ -559,6 +559,15 @@ public class TickDBImpl
                SYMBOLS_FILE.equals(name) || CONFIG_FILE.equals(name);
     }
 
+    public static boolean                   isDataFile(File dir, String name) {
+        if (name.endsWith(DATA_EXTENSION))
+            return name.startsWith("x.") || name.startsWith("x1.") ||
+                    name.startsWith("m.") || name.startsWith("m1.") ||
+                    name.startsWith("z") || name.equals(INDEX_FILE);
+
+        return false;
+    }
+
     public void                open (boolean readOnly) {
         assert !Thread.holdsLock(this);
 
