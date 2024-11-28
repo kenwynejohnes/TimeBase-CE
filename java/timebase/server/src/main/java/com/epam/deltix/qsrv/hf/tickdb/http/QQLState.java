@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems, Inc
+ * Copyright 2024 EPAM Systems, Inc
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership. Licensed under the Apache License,
@@ -15,6 +15,8 @@
  * the License.
  */
 package com.epam.deltix.qsrv.hf.tickdb.http;
+
+import com.epam.deltix.qsrv.hf.tickdb.lang.pub.Token;
 
 import javax.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;

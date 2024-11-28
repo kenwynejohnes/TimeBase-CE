@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems, Inc
+ * Copyright 2024 EPAM Systems, Inc
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership. Licensed under the Apache License,
@@ -44,9 +44,9 @@ public class TickDBFolderManager {
         }
     }
 
-    private final boolean                             readOnly;
-    private final Map <File, FolderInfo>              dbDirs = new TreeMap <File, FolderInfo> ();
-    private final Map <String, File>                  nameToFileMap = new TreeMap <String, File> ();
+    private final boolean                       readOnly;
+    private final Map <File, FolderInfo>        dbDirs = new TreeMap <File, FolderInfo> ();
+    private final Map <String, File>            nameToFileMap = new TreeMap <String, File> ();
 
     public TickDBFolderManager (boolean readOnly, File ... dirs) throws IOException {
         this.readOnly = readOnly;

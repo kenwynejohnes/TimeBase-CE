@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems, Inc
+ * Copyright 2024 EPAM Systems, Inc
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership. Licensed under the Apache License,
@@ -71,6 +71,7 @@ public class TBServerCmd extends DefaultApplication {
         LogKeeper.LOG.info("QuantServer Version:  %s").with(Version.getVersion());
         LogKeeper.LOG.info("QuantServer Home:     %s").with(QSHome.get());
         LogKeeper.LOG.info("QuantServer Port:     %s").with(config.port);
+        LogKeeper.LOG.info("JVM:                  %s (%s)").with(System.getProperty("java.version")).with(System.getProperty("java.vendor"));
     }
 
     private class QuantServerShutdownHook extends Thread {
