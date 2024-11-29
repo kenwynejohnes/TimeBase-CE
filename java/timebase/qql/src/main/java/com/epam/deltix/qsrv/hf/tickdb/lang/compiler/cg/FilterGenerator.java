@@ -426,7 +426,7 @@ class FilterGenerator {
                 evalGenerator.genEval(outMsgInFilter.call("nullifyTimeStampMs"));
             }
 
-            //generateSymbolInit(symbolInit, outMsgInFilter);
+            generateSymbolInit(symbolInit, outMsgInFilter);
             //generateInstrumentTypeInit(typeInit, outMsgInFilter);
 
             filterBody.add(mdoAccess.call("reset"));
@@ -459,7 +459,7 @@ class FilterGenerator {
             filterBody.add(outMsgInFilter.call("setTimeStampMs", inMsg.call("getTimeStampMs")));
             filterBody.add(outMsgInFilter.call("setNanoTime", inMsg.call("getNanoTime")));
             filterBody.add(outMsgInFilter.field("type").assign(inMsg.field("type")));
-            //generateSymbolInit(symbolInit, outMsgInFilter);
+            generateSymbolInit(symbolInit, outMsgInFilter);
             //generateInstrumentTypeInit(typeInit, outMsgInFilter);
 
             JInitMemberVariable mdoVar = generateVar(stateClass, MemoryDataOutput.class, "out");
@@ -529,18 +529,16 @@ class FilterGenerator {
 //        }
 //    }
 
-//    private void generateSymbolInit(CompiledExpression symbolInit, JExpr outMsgInFilter) {
-//        if (symbolInit == null) {
-//            filterBody.add(
-//                outMsgInFilter.call("setSymbol", inMsg.call("getSymbol"))
-//            );
-//        } else {
-//            evalGenerator.genEval(
-//                symbolInit,
-//                new QSymbolTypeValue(QSymbolType.INSTANCE, outMsgInFilter)
-//            );
-//        }
-//    }
+    private void generateSymbolInit(CompiledExpression symbolInit, JExpr outMsgInFilter) {
+        if (symbolInit == null)
+            filterBody.add (
+                    outMsgInFilter.call("setSymbol", inMsg.call("getSymbol"))
+            );
+        else
+            evalGenerator.genEval (
+                    outMsgInFilter.call("setSymbol", CTXT.stringLiteral(""))
+            );
+    }
 
     private void initializeSelectLimits(SelectLimit limit) {
         if (limit != null) {

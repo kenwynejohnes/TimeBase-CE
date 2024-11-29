@@ -584,11 +584,11 @@ Running QQL: select entries.level if size(entries.level) > 0 from kraken
 {"$type":"QUERY34751328","symbol":"DOGE/USDT","timestamp":"2023-01-25T12:00:00.041Z","$1":[18,49]}
 !END
 Running QQL: with this.entries[this is L1Entry][0] as trade select max{}(trade.price) as high, min{}(trade.price) as low, first{}(trade.price) as open, last{}(trade.price) as close, 'HIGH' if high > 22593 else 'LOW' from (binance union kraken union bitfinex) over time(5s) where trade != null and symbol == 'BTC/USD'
-{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:05.000Z","HIGH":"22597","LOW":"22592.2","OPEN":"22592.2","CLOSE":"22596","$1":"HIGH"}
-{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:10.000Z","HIGH":"22597","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
-{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:15.000Z","HIGH":"22597","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
-{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:20.000Z","HIGH":"22597","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
-{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:25.000Z","HIGH":"22597","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
+{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:05.000Z","HIGH":"22597.0","LOW":"22592.2","OPEN":"22592.2","CLOSE":"22596","$1":"HIGH"}
+{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:10.000Z","HIGH":"22597.0","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
+{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:15.000Z","HIGH":"22597.0","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
+{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:20.000Z","HIGH":"22597.0","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
+{"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:25.000Z","HIGH":"22597.0","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"HIGH"}
 {"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:30.000Z","HIGH":"22592.9","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"LOW"}
 {"$type":"QUERY5783702654912056303","symbol":"BTC/USD","timestamp":"2023-01-25T12:00:35.000Z","HIGH":"22592.8","LOW":"22592.8","OPEN":"22592.8","CLOSE":"22592.8","$1":"LOW"}
 !END
