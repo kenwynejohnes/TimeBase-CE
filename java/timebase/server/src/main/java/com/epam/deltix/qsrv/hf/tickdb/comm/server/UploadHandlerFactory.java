@@ -28,6 +28,7 @@ import com.epam.deltix.qsrv.hf.tickdb.pub.DXTickStream;
 import com.epam.deltix.qsrv.hf.tickdb.pub.LoadingOptions;
 import com.epam.deltix.qsrv.hf.tickdb.pub.lock.DBLock;
 import com.epam.deltix.qsrv.hf.tickdb.pub.lock.LockType;
+import com.epam.deltix.qsrv.hf.tickdb.pub.lock.LockVerifier;
 import com.epam.deltix.util.concurrent.QuickExecutor;
 import com.epam.deltix.util.vsocket.VSChannel;
 import io.aeron.Aeron;
@@ -66,7 +67,7 @@ public class UploadHandlerFactory {
             throw new UnknownStreamException("Unknown stream: " + key);
 
         DBLock lock = RequestHandler.readLock(ds);
-        stream.verify(lock, LockType.WRITE);
+        ((LockVerifier) stream).checkExclusiveWrite(lock);
 
         LoadingOptions options = new LoadingOptions(true);
         LoadingOptionsCodec.read(in, options, clientVersion);

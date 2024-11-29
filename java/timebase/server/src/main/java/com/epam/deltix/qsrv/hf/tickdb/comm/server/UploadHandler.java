@@ -44,7 +44,7 @@ import java.security.Principal;
 import java.util.logging.Level;
 
 class UploadHandler extends QuickExecutor.QuickTask implements LockEventListener {
-    private final VSChannel                 ds;        
+    private final VSChannel                 ds;
     private final ByteArrayList             byteBuffer = new ByteArrayList (1024);
     private final MemoryDataInput           inBuffer = new MemoryDataInput ();
     private final DXTickStream              stream;
@@ -66,13 +66,13 @@ class UploadHandler extends QuickExecutor.QuickTask implements LockEventListener
     private final LoadingErrorListener lockErrorListener;
 
     private final Runnable              avlnr =
-        new Runnable () {
-            @Override
-            public void    run () {
-                //System.out.println ("UPLOAD WAKES UP");
-                submit ();
-            }
-        };
+            new Runnable () {
+                @Override
+                public void    run () {
+                    //System.out.println ("UPLOAD WAKES UP");
+                    submit ();
+                }
+            };
 
     UploadHandler(Principal user, VSChannel ds, QuickExecutor exe, int clientVersion, boolean binary,
                   @Nonnull LoadingOptions options,
@@ -156,7 +156,7 @@ class UploadHandler extends QuickExecutor.QuickTask implements LockEventListener
 
                 if (size < 0) {
                     TickDBServer.LOGGER.warning (
-                        "Unexpected EOS loading into " + stream.getKey ()
+                            "Unexpected EOS loading into " + stream.getKey ()
                     );
                     closeAll ();
                     return;
@@ -211,7 +211,7 @@ class UploadHandler extends QuickExecutor.QuickTask implements LockEventListener
                             loader.removeUnique(msg);
                         else
                             loader.send (msg);
-                        
+
                         break;
                     }
                 }

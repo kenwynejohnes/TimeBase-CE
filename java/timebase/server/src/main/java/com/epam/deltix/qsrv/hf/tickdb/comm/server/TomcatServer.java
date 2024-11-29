@@ -29,11 +29,11 @@ import java.net.ServerSocket;
  * Tomcat Test Server
  */
 public class TomcatServer implements EmbeddedServer {
-    private TomcatRunner        runner;
-    private StartConfiguration  config;
-    private int                 port;
-    private int                 webPort;
-    private Boolean             enableAeron = false; // Aeron is disabled for TomcatServer by default
+    private TomcatRunner runner;
+    private StartConfiguration config;
+    private int             port;
+    private int             webPort;
+    private Boolean enableAeron = false; // Aeron is disabled for TomcatServer by default
 
     public TomcatServer() {
         this(null, 0);
@@ -44,7 +44,7 @@ public class TomcatServer implements EmbeddedServer {
         this.port = config != null ? config.port : 0;
     }
 
-    public TomcatServer (StartConfiguration config, int port) {
+    public TomcatServer(StartConfiguration config, int port) {
         this.config = config;
         this.port = port;
     }
@@ -57,7 +57,7 @@ public class TomcatServer implements EmbeddedServer {
     }
 
     @Override
-    public int start () throws Exception {
+    public int start() throws Exception {
 
         if (config == null)
             config = StartConfiguration.create(true, false, false);
@@ -91,7 +91,7 @@ public class TomcatServer implements EmbeddedServer {
     }
 
     @Override
-    public void stop () {
+    public void stop() {
         if (runner != null)
             runner.close();
     }

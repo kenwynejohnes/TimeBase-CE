@@ -61,7 +61,8 @@ public abstract class BaseTopicReadingTest extends BaseAeronTest {
 
             while (!senderStopFlag.get()) {
                 messageSentCounter ++;
-                msg.setTimeStampMs(messageSentCounter); // Se store message number in the timestamp field.
+                msg.setTimeStampMs(messageSentCounter);
+                msg.setSeqNum(234567890); // Se store message number in the timestamp field.
                 messageChannel.send(msg);
                 messagesSentCounter.set(messageSentCounter);
             }

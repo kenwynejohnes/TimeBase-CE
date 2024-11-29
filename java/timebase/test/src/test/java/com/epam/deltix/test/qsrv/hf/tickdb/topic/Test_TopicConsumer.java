@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 EPAM Systems, Inc
+ * Copyright 2024 EPAM Systems, Inc
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership. Licensed under the Apache License,
@@ -16,22 +16,23 @@
  */
 package com.epam.deltix.test.qsrv.hf.tickdb.topic;
 
+import com.epam.deltix.qsrv.hf.tickdb.pub.topic.TopicDB;
 import com.epam.deltix.streaming.MessageSource;
 import com.epam.deltix.timebase.messages.InstrumentMessage;
-import com.epam.deltix.qsrv.hf.tickdb.pub.topic.TopicDB;
 import com.epam.deltix.util.JUnitCategories;
 import com.epam.deltix.util.concurrent.CursorIsClosedException;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import javax.annotation.Nonnull;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Alexei Osipov
  */
 @Category(JUnitCategories.TickDB.class)
-public class Test_TopicCursor extends BaseTimeBaseTopicReadingTest {
+public class Test_TopicConsumer extends BaseTimeBaseTopicReadingTest {
     private MessageSource<InstrumentMessage> messageSource;
 
     @Test(timeout = TEST_TIMEOUT)
@@ -39,12 +40,15 @@ public class Test_TopicCursor extends BaseTimeBaseTopicReadingTest {
         executeTest();
     }
 
-    @NotNull
-    protected Runnable createReader(AtomicLong messagesReceivedCounter, MessageValidator messageValidator, String topicKey, TopicDB topicDB) {
+    @Override
+    @Nonnull
+    protected Runnable createReader(AtomicLong messagesReceivedCounter,
+                                    MessageValidator messageValidator, String topicKey, TopicDB topicDB, CountDownLatch readerReady) {
 
         this.messageSource = topicDB.createConsumer(topicKey, null, null);
 
         return () -> {
+            readerReady.countDown();
             RatePrinter ratePrinter = new RatePrinter("Reader");
             ratePrinter.start();
             try {

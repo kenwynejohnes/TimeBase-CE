@@ -19,6 +19,7 @@ package com.epam.deltix.qsrv.hf.tickdb.comm.server;
 import com.epam.deltix.qsrv.hf.pub.md.ClassSet;
 import com.epam.deltix.qsrv.hf.tickdb.comm.*;
 import com.epam.deltix.qsrv.hf.tickdb.pub.*;
+import com.epam.deltix.qsrv.hf.tickdb.pub.lock.*;
 import com.epam.deltix.qsrv.hf.tickdb.pub.query.Parameter;
 import com.epam.deltix.qsrv.hf.topic.DirectProtocol;
 import com.google.common.collect.ImmutableList;
@@ -58,10 +59,6 @@ import com.epam.deltix.qsrv.hf.tickdb.impl.topic.topicregistry.TopicChannelOptio
 import com.epam.deltix.qsrv.hf.tickdb.lang.parser.QQLParser;
 import com.epam.deltix.qsrv.hf.tickdb.lang.pub.TextMap;
 import com.epam.deltix.qsrv.hf.tickdb.lang.pub.Token;
-import com.epam.deltix.qsrv.hf.tickdb.pub.lock.DBLock;
-import com.epam.deltix.qsrv.hf.tickdb.pub.lock.DBLockImpl;
-import com.epam.deltix.qsrv.hf.tickdb.pub.lock.LockType;
-import com.epam.deltix.qsrv.hf.tickdb.pub.lock.StreamLockedException;
 import com.epam.deltix.qsrv.hf.tickdb.pub.mon.TBLock;
 import com.epam.deltix.qsrv.hf.tickdb.pub.task.TransformationTask;
 import com.epam.deltix.qsrv.hf.tickdb.pub.topic.exception.TopicApiException;
@@ -439,7 +436,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         final DXTickStream          stream = getStream (ds);
 
         ServerLock lock = readLock(ds);
-        stream.verify(lock, LockType.WRITE); // verify lock
+        ((LockVerifier) stream).checkExclusiveWrite(lock);
 
         DataInputStream in = ds.getDataInputStream();
 
@@ -456,7 +453,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         final DXTickStream          stream = getStream (ds);
 
         ServerLock lock = readLock(ds);
-        stream.verify(lock, LockType.WRITE); // verify lock
+        ((LockVerifier) stream).checkExclusiveWrite(lock);
 
         String key = stream.getKey();
 
@@ -472,7 +469,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         final DXTickStream          stream = getStream (ds);
         String key = ds.getDataInputStream().readUTF ();
 
-        stream.verify(readLock(ds), LockType.WRITE); // verify lock
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
         stream.rename(key);
 
         if (UserLogger.canTrace(user))
@@ -480,6 +477,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
 
         out.writeInt (TDBProtocol.RESP_OK);
     }
+
     
     private void                doGetTimeRange (VSChannel ds) throws IOException {
         final DXTickStream            stream = getStream (ds);
@@ -675,8 +673,8 @@ public class RequestHandler extends QuickExecutor.QuickTask {
     private void                doSetStreamName (VSChannel ds) throws IOException {
         DXTickStream            stream = getStream (ds);
         final String name = TDBProtocol.readNullableString(ds.getDataInputStream());
-        
-        stream.verify(readLock(ds), LockType.WRITE);
+
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
 
         stream.setName(name);
         
@@ -694,8 +692,8 @@ public class RequestHandler extends QuickExecutor.QuickTask {
     private void                doSetStreamPeriod (VSChannel ds) throws IOException {
         DXTickStream            stream = getStream (ds);
         final String v = TDBProtocol.readNullableString(ds.getDataInputStream());
-        
-        stream.verify(readLock(ds), LockType.WRITE);
+
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
 
         stream.setPeriodicity(Periodicity.parse(v));
         out.writeInt (TDBProtocol.RESP_OK);
@@ -741,7 +739,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         boolean                     polymorphic = in.readBoolean ();
         RecordClassSet              md = (RecordClassSet) TDBProtocol.readClassSet (in);
 
-        stream.verify(readLock(ds), LockType.WRITE);
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
         
         if (polymorphic)
             stream.setPolymorphic (md.getTopTypes ());
@@ -777,7 +775,8 @@ public class RequestHandler extends QuickExecutor.QuickTask {
     private void                doSetStreamDescr (VSChannel ds) throws IOException {
         DXTickStream            stream = getStream (ds);
         final String description = TDBProtocol.readNullableString(ds.getDataInputStream());
-        stream.verify(readLock(ds), LockType.WRITE);
+
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
 
         stream.setDescription(description);
         out.writeInt (TDBProtocol.RESP_OK);
@@ -897,7 +896,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         final DXTickStream            stream = getStream (ds);
         final IdentityKey [] ids = TDBProtocol.readInstrumentIdentities (ds.getDataInputStream());
 
-        stream.verify(readLock(ds), LockType.WRITE);
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
 
         stream.clear( ids);
         out.writeInt (TDBProtocol.RESP_OK);
@@ -910,7 +909,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         long time = din.readLong();
         final IdentityKey [] ids = TDBProtocol.readInstrumentIdentities (din);
 
-        stream.verify(readLock(ds), LockType.WRITE);
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
 
         stream.truncate(time, ids);
         out.writeInt (TDBProtocol.RESP_OK);
@@ -923,7 +922,7 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         final DXTickStream            stream = getStream (ds);
         TransformationTask task = TDBProtocol.readTransformationTask(ds.getDataInputStream());
 
-        stream.verify(readLock(ds), LockType.WRITE);
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
 
         stream.execute(task);
 
@@ -1087,7 +1086,8 @@ public class RequestHandler extends QuickExecutor.QuickTask {
         DXTickStream stream = getStream(ds);
         final String newOwner = TDBProtocol.readNullableString(ds.getDataInputStream());
 
-        stream.verify(readLock(ds), LockType.WRITE);
+        ((LockVerifier) stream).checkExclusiveWrite(readLock(ds));
+
         stream.setOwner(newOwner);
         out.writeInt(TDBProtocol.RESP_OK);
     }

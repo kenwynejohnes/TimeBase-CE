@@ -67,7 +67,7 @@ public class StdEnvironment extends EnvironmentFrame {
         super(parent);
 
         List<Object> params = new ArrayList<>(Arrays.asList(
-            new TypeAnnotationsScanner(), new SubTypesScanner(), "deltix.computations"
+            new TypeAnnotationsScanner(), new SubTypesScanner(), "com.epam.deltix.computations"
         ));
         addCustomPackages(params);
         Reflections reflections = new Reflections(params.toArray());
