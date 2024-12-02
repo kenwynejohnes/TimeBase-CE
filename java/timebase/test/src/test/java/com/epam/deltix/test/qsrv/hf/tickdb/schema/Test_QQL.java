@@ -121,7 +121,7 @@ public class Test_QQL extends TDBRunnerBase {
         // execution runs in background - wait for it
         waitForExecution(stream);
 
-        assertEquals(null, stream.getName());
+        assertEquals("bbo", stream.getName());
         stream.delete();
     }
 }

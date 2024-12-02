@@ -564,7 +564,7 @@ public abstract class DownloadHandler <T extends SelectRequest> extends Abstract
                     recordClassSet.addContentClasses(type);
 
                     final String xml = marshallUHF(cda);
-                    assert xml.length() > 0;
+
                     if (request.version > 6)
                         SerializationUtils.writeUTFString(dout, xml);
                     else

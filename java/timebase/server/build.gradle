@@ -95,7 +95,7 @@ task copyTimebaseServerContainerDependensies(type: Copy) {
     description 'Copy all timebase server dependencies'
     //dependsOn ':java:cleanSubprojects' // This is necessary to force clean build.
     dependsOn 'build'
-    dependsOn ':java:timebase:server:copyWebapp'
+    dependsOn ':java:timebase:server:copyMonitorWebapp'
     dependsOn ':java:timebase:commons:copyWebapp'
     dependsOn ':java:timebase:s3:build'
     dependsOn ':distribution:build'

@@ -334,7 +334,7 @@ public class Selector {
             String []       s = args.split ("\\s", 3);
             boolean         add = s[0].equalsIgnoreCase ("add");
 
-            String          symbol = s[2].trim ();
+            String          symbol = s[1].trim ();
             
             boolean         ok = changeSubscription(symbol, add);
             shell.confirm (

@@ -29,7 +29,6 @@ import com.epam.deltix.qsrv.hf.tickdb.impl.topic.TopicTransferType;
 import com.epam.deltix.qsrv.hf.tickdb.impl.topic.topicregistry.LoaderSubscriptionResult;
 import com.epam.deltix.qsrv.hf.tickdb.lang.parser.QQLParser;
 import com.epam.deltix.qsrv.hf.tickdb.lang.pub.TextMap;
-import com.epam.deltix.qsrv.hf.tickdb.lang.pub.Token;
 import com.epam.deltix.qsrv.hf.tickdb.pub.DXTickDB;
 import com.epam.deltix.qsrv.hf.tickdb.pub.DXTickStream;
 import com.epam.deltix.qsrv.hf.tickdb.pub.topic.settings.TopicType;

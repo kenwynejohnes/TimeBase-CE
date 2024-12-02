@@ -178,7 +178,7 @@ public class StdEnvironment extends EnvironmentFrame {
     }
 
     public final void registerFunction(Class<?> cls, Method method) {
-        LOG.info().append("Registered function: ").appendLast(method.getName() + "." + method.getName());
+        LOG.trace().append("Registered function: ").appendLast(method.getName() + "." + method.getName());
 
         if (method.isAnnotationPresent(Function.class)) {
             SimpleFunctionDescriptor descriptor = SimpleFunctionDescriptor.create(cls, method);
