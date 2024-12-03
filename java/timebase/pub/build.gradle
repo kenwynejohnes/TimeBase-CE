@@ -28,6 +28,10 @@ dependencies {
 
     implementation 'com.bettercloud:vault-java-driver'
 
+    implementation 'io.github.green4j:green-jelly:0.1.1'
+
+    implementation 'com.bettercloud:vault-java-driver'
+
     implementation 'com.azure:azure-identity'
     implementation 'com.azure:azure-security-keyvault-secrets'
 }
