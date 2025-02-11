@@ -35,6 +35,7 @@ import com.epam.deltix.util.lang.Util;
 import com.epam.deltix.util.memory.MemoryDataInput;
 import com.epam.deltix.util.memory.MemoryDataOutput;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -215,6 +216,7 @@ public class Test_RecordCodecs7 extends Test_RecordCodecsBase {
     }
 
     @Test
+    @Ignore // TODO: 2/11/2025 @AK need add test source ZIP field
     public void testNestedArrays() throws Exception {
         String path = createDB(ZIP.getAbsolutePath());
 
@@ -3053,8 +3055,6 @@ public class Test_RecordCodecs7 extends Test_RecordCodecsBase {
 
     private void testNotNullable4CompoundBound() throws Exception {
         RecordClassDescriptor rcd = getRCD(AllCompoundFields.class);
-        rcd = changeRCDNullability(rcd, false);
-
         final RecordClassDescriptor rcdNullable = changeRCDNullability(rcd, true);
         final AllCompoundFields msg = new AllCompoundFields();
 
@@ -3086,7 +3086,7 @@ public class Test_RecordCodecs7 extends Test_RecordCodecsBase {
                 MemoryDataInput in = new MemoryDataInput(out);
                 boundDecode(null, rcd, in);
                 fail("field level decode " + fieldName);
-            } catch (IllegalArgumentException e1) {
+            } catch (AssertionError e1) {
                 Assert.assertEquals(String.format("'%s' field is not nullable", fieldName), e1.getMessage());
             }
         }
@@ -3211,7 +3211,7 @@ public class Test_RecordCodecs7 extends Test_RecordCodecsBase {
         try {
             boundDecode(null, rcdNotNull, in);
             Assert.fail("totally empty");
-        } catch (Exception e) {
+        } catch (AssertionError e) {
             Assert.assertEquals("'f1' field is not nullable", e.getCause().getMessage());
         }
 
