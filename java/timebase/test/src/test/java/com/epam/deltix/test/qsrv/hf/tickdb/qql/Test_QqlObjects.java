@@ -661,20 +661,21 @@ public class Test_QqlObjects extends TDBRunnerBase {
                     "over time(5s) " +
                     "where trade != null and symbol == 'BTC/USD'"),
 
-            QUERY_RAW("WITH entries[this is L1Entry] as 'entries', " +
-                    "sum(entries.price * entries.size) / sum(entries.size) as 'avgPrice', " +
-                    "bollinger{}(avgPrice) as 'bollinger' " +
-                    "SELECT " +
-                    "avgPrice, " +
-                    "sma{timePeriod: 1h}(avgPrice) as 'sma-1h', " +
-                    "cma{}(avgPrice) as 'cma', " +
-                    "ema{period: 14}(avgPrice) as 'ema-14', " +
-                    "bollinger.upperBand, " +
-                    "bollinger.middleBand, " +
-                    "bollinger.lowerBand " +
-                    "FROM KRAKEN " +
-                    "OVER TIME(5s) " +
-                    "WHERE symbol == 'BTC/USD' AND notEmpty(entries)"),
+        // TODO: uncomment when timebase computations lib will be added to dependencies
+//            QUERY_RAW("WITH entries[this is L1Entry] as 'entries', " +
+//                    "sum(entries.price * entries.size) / sum(entries.size) as 'avgPrice', " +
+//                    "bollinger{}(avgPrice) as 'bollinger' " +
+//                    "SELECT " +
+//                    "avgPrice, " +
+//                    "sma{timePeriod: 1h}(avgPrice) as 'sma-1h', " +
+//                    "cma{}(avgPrice) as 'cma', " +
+//                    "ema{period: 14}(avgPrice) as 'ema-14', " +
+//                    "bollinger.upperBand, " +
+//                    "bollinger.middleBand, " +
+//                    "bollinger.lowerBand " +
+//                    "FROM KRAKEN " +
+//                    "OVER TIME(5s) " +
+//                    "WHERE symbol == 'BTC/USD' AND notEmpty(entries)"),
 
 //            QUERY_RAW("select " +
 //                    "orderbook{maxDepth: 10}(this.packageType, this.entries) as entries, " +
