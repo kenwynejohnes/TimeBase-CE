@@ -243,11 +243,11 @@ configure(leafProjects) {
             dependency 'commons-lang:commons-lang:2.6'
             dependency 'commons-logging:commons-logging:1.1.1'
             dependency 'commons-collections:commons-collections:3.2.2'
-            dependency 'commons-io:commons-io:2.7'
+            dependency 'commons-io:commons-io:2.15.1'
             dependency 'commons-codec:commons-codec:1.13'
             dependency 'commons-net:commons-net:3.9.0'
 
-            dependency 'org.apache.commons:commons-compress:1.21'
+            dependency 'org.apache.commons:commons-compress:1.26.1'
             dependency 'org.apache.commons:commons-lang3:3.7'
             dependency 'org.apache.commons:commons-math3:3.6'
             dependency 'org.apache.commons:commons-text:1.10.0'
@@ -267,8 +267,6 @@ configure(leafProjects) {
 
             dependency 'org.tukaani:xz:1.6'
             dependency 'joda-time:joda-time:2.8.1'
-
-            dependency 'org.jdom:jdom2:2.0.5'
 
             dependency 'com.google.errorprone:error_prone_annotations:2.0.19'
 
