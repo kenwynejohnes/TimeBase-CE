@@ -190,13 +190,6 @@ configure(leafProjects) {
 
             dependency 'org.hdrhistogram:HdrHistogram:2.1.10'
 
-            dependencySet(group: 'org.springframework', version: '5.3.28') {
-                entry 'spring-context'
-                entry 'spring-web'
-                entry 'spring-webmvc'
-                entry 'spring-beans'
-            }
-
 //            dependencySet(group: 'org.apache.hadoop', version: '2.10.1') {
 //                entry 'hadoop-annotations'
 //                entry 'hadoop-auth'
@@ -251,6 +244,8 @@ configure(leafProjects) {
             dependency 'org.apache.commons:commons-lang3:3.7'
             dependency 'org.apache.commons:commons-math3:3.6'
             dependency 'org.apache.commons:commons-text:1.10.0'
+
+            dependency 'org.reflections:reflections:0.9.11'
 
             dependencySet(group: 'org.apache.httpcomponents', version: '4.5.13') {
                 entry 'httpclient'
@@ -309,7 +304,7 @@ configure(leafProjects) {
                 entry 'jackson-mapper-asl'
                 entry 'jackson-core-asl'
             }
-            dependency 'org.xerial.snappy:snappy-java:1.1.10.1'
+            dependency 'org.xerial.snappy:snappy-java:1.1.10.4'
             dependency 'org.slf4j:slf4j-log4j12:1.7.10'
 
             dependency 'com.sun.xml.bind:jaxb-impl:2.3.0'

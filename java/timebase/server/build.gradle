@@ -42,11 +42,6 @@ dependencies {
 
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // web application
-
-    implementation 'org.springframework:spring-webmvc'
-    implementation 'org.springframework:spring-web'
-
     implementation 'org.apache.taglibs:taglibs-standard-impl' // JSTL Support
     implementation 'javax.servlet.jsp.jstl:jstl-api'; // JSTL Support
 
@@ -68,6 +63,8 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine:2.5.6' // Cache implementation
     implementation 'com.lmax:disruptor'
     implementation 'commons-io:commons-io'
+
+    implementation 'org.reflections:reflections'
 
     // TODO: Replace by JSR305
     compileOnly 'com.intellij:annotations'

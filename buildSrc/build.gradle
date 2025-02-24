@@ -8,7 +8,7 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
 
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.1034'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.740'
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
     compile 'com.fasterxml.jackson.core:jackson-core:2.13.5'

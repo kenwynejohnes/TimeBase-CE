@@ -17,6 +17,38 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet>
+        <servlet-name>ping</servlet-name>
+        <servlet-class>com.epam.deltix.qsrv.hf.tickdb.web.controller.PingServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>metrics</servlet-name>
+        <servlet-class>com.epam.deltix.qsrv.hf.tickdb.web.controller.MetricsServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>monitor</servlet-name>
+        <servlet-class>com.epam.deltix.qsrv.hf.tickdb.web.controller.MonitorServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>monitor</servlet-name>
+        <url-pattern>/</url-pattern>
+        <url-pattern>/index</url-pattern>
+        <url-pattern>/loaders</url-pattern>
+        <url-pattern>/loaders/*</url-pattern>
+        <url-pattern>/cursors</url-pattern>
+        <url-pattern>/cursors/*</url-pattern>
+        <url-pattern>/connections</url-pattern>
+        <url-pattern>/locks</url-pattern>
+        <url-pattern>/track/*</url-pattern>
+        <url-pattern>/license</url-pattern>
+        <url-pattern>/license/revalidate</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>api</servlet-name>
         <url-pattern>/xml/*</url-pattern>
@@ -25,6 +57,16 @@
     <servlet-mapping>
         <servlet-name>api</servlet-name>
         <url-pattern>/bin/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ping</servlet-name>
+        <url-pattern>/ping</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>metrics</servlet-name>
+        <url-pattern>/metrics</url-pattern>
     </servlet-mapping>
 
     <mime-mapping>
@@ -47,16 +89,17 @@
         </taglib>
     </jsp-config>
 
+<!--
     <servlet>
         <servlet-name>tbmon</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>tbmon</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+    -->
 
     <filter-mapping>
         <filter-name>AccessFilter</filter-name>
@@ -87,5 +130,8 @@
     <url-pattern>/webdav/*</url-pattern>
   </servlet-mapping>
   -->
-
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/resources/*</url-pattern>
+    </servlet-mapping>
 </web-app>
