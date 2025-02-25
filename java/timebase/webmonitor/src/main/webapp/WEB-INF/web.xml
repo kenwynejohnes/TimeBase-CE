@@ -38,15 +38,12 @@
         <servlet-name>monitor</servlet-name>
         <url-pattern>/</url-pattern>
         <url-pattern>/index</url-pattern>
-        <url-pattern>/loaders</url-pattern>
         <url-pattern>/loaders/*</url-pattern>
-        <url-pattern>/cursors</url-pattern>
         <url-pattern>/cursors/*</url-pattern>
         <url-pattern>/connections</url-pattern>
+        <url-pattern>/connection</url-pattern>
         <url-pattern>/locks</url-pattern>
         <url-pattern>/track/*</url-pattern>
-        <url-pattern>/license</url-pattern>
-        <url-pattern>/license/revalidate</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
