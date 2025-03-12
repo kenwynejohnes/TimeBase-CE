@@ -16,28 +16,19 @@
  */
 package com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem;
 
+import com.epam.deltix.gflog.api.Log;
+import com.epam.deltix.gflog.api.LogFactory;
 import com.epam.deltix.computations.api.annotations.Function;
 import com.epam.deltix.computations.api.annotations.FunctionsRepo;
 import com.epam.deltix.computations.api.annotations.MultiSignatureFunction;
 import com.epam.deltix.computations.api.annotations.Signature;
-import com.epam.deltix.gflog.api.*;
-import com.epam.deltix.qsrv.hf.pub.md.DataType;
-import com.epam.deltix.qsrv.hf.pub.md.EnumClassDescriptor;
-import com.epam.deltix.qsrv.hf.pub.md.EnumDataType;
-import com.epam.deltix.qsrv.hf.pub.md.Introspector;
-import com.epam.deltix.qsrv.hf.pub.md.StandardTypes;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.FunctionDescriptor;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.OverloadedFunctionSet;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.SimpleFunctionDescriptor;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.StatefulFunctionDescriptor;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.StatefulFunctionsSet;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.StatelessFunctionDescriptor;
-import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.StaticMethodFunctionDescriptor;
+import com.epam.deltix.qsrv.hf.pub.md.*;
+import com.epam.deltix.qsrv.hf.tickdb.lang.compiler.sem.functions.*;
 import com.epam.deltix.qsrv.hf.tickdb.lang.pub.NamedObjectType;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-
+import com.epam.deltix.qsrv.hf.tickdb.lang.runtime.functions.InternalFunctions;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -52,8 +43,10 @@ public class StdEnvironment extends EnvironmentFrame {
 
     private static final Log LOG = LogFactory.getLog(StdEnvironment.class);
 
-    //public static final EnumClassDescriptor INSTR_TYPE_ECD;
-    //public static final EnumDataType INSTR_TYPE_ENUM;
+    private static final String CUSTOM_PACKAGES = System.getProperty("TimeBase.qql.functions.packages");
+
+//    public static final EnumClassDescriptor INSTR_TYPE_ECD;
+//    public static final EnumDataType INSTR_TYPE_ENUM;
 
     private final List<StatelessFunctionDescriptor> statelessFunctions = new ArrayList<>();
     private final List<StatefulFunctionDescriptor> statefulFunctions = new ArrayList<>();
@@ -73,6 +66,11 @@ public class StdEnvironment extends EnvironmentFrame {
     public StdEnvironment(Environment parent) {
         super(parent);
 
+        List<Object> params = new ArrayList<>(Arrays.asList(
+            new TypeAnnotationsScanner(), new SubTypesScanner(), "com.epam.deltix.computations"
+        ));
+        addCustomPackages(params);
+        Reflections reflections = new Reflections(params.toArray());
 
         register(StandardTypes.CLEAN_BOOLEAN);
         register(StandardTypes.CLEAN_BINARY);
@@ -86,27 +84,10 @@ public class StdEnvironment extends EnvironmentFrame {
 //        register(new ClassMap.EnumClassInfo(INSTR_TYPE_ECD));
 //        QQLCompiler.setUpEnv(this, INSTR_TYPE_ECD);
 
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(Signature.class));
-        scanner.addIncludeFilter(new AnnotationTypeFilter(FunctionsRepo.class));
-        scanner.addIncludeFilter(new AnnotationTypeFilter(Function.class));
-
-        for (BeanDefinition beanDefinition : scanner.findCandidateComponents("com.epam.deltix")) {
-            try {
-                Class<?> clazz = Class.forName(beanDefinition.getBeanClassName());
-                if (clazz.isAnnotationPresent(FunctionsRepo.class)) {
-                    for (Method method : Arrays.stream(clazz.getMethods()).filter(StdEnvironment::isMethodMatches)
-                            .collect(Collectors.toList())) {
-                        registerFunction(clazz, method);
-                    }
-                } else {
-                    registerFunction(Class.forName(beanDefinition.getBeanClassName()));
-                }
-                LOG.trace().append("Registered function ").appendLast(beanDefinition.getBeanClassName());
-            } catch (ClassNotFoundException e) {
-                LOG.trace().appendLast(e);
-            }
-        }
+        registerFunctionRepoClass(InternalFunctions.class);
+        reflections.getTypesAnnotatedWith(FunctionsRepo.class)
+                .forEach(this::registerFunctionRepoClass);
+        reflections.getTypesAnnotatedWith(Function.class).forEach(this::registerFunction);
 
         bindPseudoFunction(QQLCompiler.KEYWORD_LAST);
         bindPseudoFunction(QQLCompiler.KEYWORD_FIRST);
@@ -116,6 +97,49 @@ public class StdEnvironment extends EnvironmentFrame {
         bindPseudoFunction(QQLCompiler.KEYWORD_POSITION);
         bindPseudoFunction(QQLCompiler.KEYWORD_NOW);
     }
+
+    private void addCustomPackages(List<Object> params) {
+        if (CUSTOM_PACKAGES != null) {
+            String[] packages = CUSTOM_PACKAGES.split(",");
+            for (String pack : packages) {
+                pack = pack.trim();
+                if (!pack.isEmpty()) {
+                    params.add(pack);
+                }
+            }
+        }
+    }
+
+    private void registerFunctionRepoClass(Class<?> clazz) {
+        for (Method method : Arrays.stream(clazz.getMethods()).filter(StdEnvironment::isMethodMatches)
+                .collect(Collectors.toList())) {
+            registerFunction(clazz, method);
+        }
+    }
+
+//    private void findFunctions() {
+//        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+//        scanner.addIncludeFilter(new AnnotationTypeFilter(Signature.class));
+//        scanner.addIncludeFilter(new AnnotationTypeFilter(FunctionsRepo.class));
+//        scanner.addIncludeFilter(new AnnotationTypeFilter(Function.class));
+//
+//        for (BeanDefinition beanDefinition : scanner.findCandidateComponents("deltix")) {
+//            try {
+//                Class<?> clazz = Class.forName(beanDefinition.getBeanClassName());
+//                if (clazz.isAnnotationPresent(FunctionsRepo.class)) {
+//                    for (Method method : Arrays.stream(clazz.getMethods()).filter(StdEnvironment::isMethodMatches)
+//                            .collect(Collectors.toList())) {
+//                        registerFunction(clazz, method);
+//                    }
+//                } else {
+//                    registerFunction(clazz);
+//                }
+//                LOG.trace().append("Registered function ").appendLast(beanDefinition.getBeanClassName());
+//            } catch (ClassNotFoundException e) {
+//                LOG.trace().appendLast(e);
+//            }
+//        }
+//    }
 
     private void bindPseudoFunction(String name) {
         bind(NamedObjectType.FUNCTION, name, name);
@@ -131,6 +155,7 @@ public class StdEnvironment extends EnvironmentFrame {
 
     public final void registerFunction(Class<?> cls) {
          if (cls.isAnnotationPresent(Function.class)) {
+            LOG.trace().append("Registered function: ").appendLast(cls.getName());
             try {
                 for (FunctionDescriptor functionDescriptor : FunctionDescriptor.create(cls)) {
                     register(functionDescriptor);
@@ -150,6 +175,8 @@ public class StdEnvironment extends EnvironmentFrame {
     }
 
     public final void registerFunction(Class<?> cls, Method method) {
+        LOG.trace().append("Registered function: ").appendLast(method.getName() + "." + method.getName());
+
         if (method.isAnnotationPresent(Function.class)) {
             SimpleFunctionDescriptor descriptor = SimpleFunctionDescriptor.create(cls, method);
             register(descriptor);

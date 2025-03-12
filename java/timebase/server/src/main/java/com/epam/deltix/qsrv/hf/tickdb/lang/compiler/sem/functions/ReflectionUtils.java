@@ -40,7 +40,6 @@ import com.epam.deltix.qsrv.hf.pub.md.Introspector;
 import com.epam.deltix.qsrv.hf.pub.md.RecordClassDescriptor;
 import com.epam.deltix.qsrv.hf.pub.md.TimebaseTypes;
 import com.epam.deltix.qsrv.hf.tickdb.lang.runtime.functions.DB;
-import com.epam.deltix.util.annotations.Alphanumeric;
 import com.epam.deltix.util.annotations.Bool;
 import com.epam.deltix.util.annotations.TimeOfDay;
 import com.epam.deltix.util.annotations.TimestampMs;
@@ -53,22 +52,15 @@ import com.epam.deltix.util.collections.generated.LongArrayList;
 import com.epam.deltix.util.collections.generated.ObjectArrayList;
 import com.epam.deltix.util.collections.generated.ShortArrayList;
 import com.epam.deltix.util.lang.StringUtils;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.ParameterNameDiscoverer;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.springframework.util.ReflectionUtils.getUniqueDeclaredMethods;
 
 public class ReflectionUtils {
 
@@ -86,7 +78,7 @@ public class ReflectionUtils {
             Pool.class, Result.class, DB.class
     };
 
-    private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
+    //private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
     public static List<Method> findInitMethods(@Nonnull Class<?> cls) throws IllegalArgumentException {
         return Arrays.stream(getUniqueDeclaredMethods(cls))
@@ -133,6 +125,61 @@ public class ReflectionUtils {
             );
         }
         return methods.get(0);
+    }
+
+    public static Method[] getUniqueDeclaredMethods(Class<?> leafClass) {
+        Set<Method> methods = org.reflections.ReflectionUtils.getAllMethods(leafClass);
+
+        Set<Method> toRemove = new HashSet<>();
+
+        for (Method method : methods) {
+
+            if (toRemove.contains(method))
+                continue;
+
+            for (Method existingMethod : methods) {
+                if (existingMethod.equals(method) || toRemove.contains(method))
+                    continue;
+
+                if (method.getName().equals(existingMethod.getName()) &&
+                        Arrays.equals(method.getParameterTypes(), existingMethod.getParameterTypes())) {
+                    // Is this a covariant return type situation?
+                    if (existingMethod.getReturnType() != method.getReturnType()) {
+                        if (existingMethod.getReturnType().isAssignableFrom(method.getReturnType()))
+                            toRemove.add(existingMethod);
+                    } else {
+                        // remove methods from parent
+                        if (existingMethod.getDeclaringClass().isAssignableFrom(method.getDeclaringClass()))
+                            toRemove.add(existingMethod);
+                    }
+                }
+            }
+        }
+
+        toRemove.forEach(methods::remove);
+
+        return methods.toArray(new Method[0]);
+    }
+
+
+    private static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
+
+    /**
+     * Determine whether the given method is a CGLIB 'renamed' method,
+     * following the pattern "CGLIB$methodName$0".
+     * @param renamedMethod the method to check
+     */
+    public static boolean isCglibRenamedMethod(Method renamedMethod) {
+        String name = renamedMethod.getName();
+        if (name.startsWith(CGLIB_RENAMED_METHOD_PREFIX)) {
+            int i = name.length() - 1;
+            while (i >= 0 && Character.isDigit(name.charAt(i))) {
+                i--;
+            }
+            return ((i > CGLIB_RENAMED_METHOD_PREFIX.length()) &&
+                    (i < name.length() - 1) && name.charAt(i) == '$');
+        }
+        return false;
     }
 
     public static Method findResetMethod(@Nonnull Class<?> cls) throws IllegalArgumentException {
@@ -201,7 +248,8 @@ public class ReflectionUtils {
     }
 
     public static boolean isPublicNonStatic(Method method) {
-        return Modifier.isPublic(method.getModifiers()) && !Modifier.isStatic(method.getModifiers());
+        int modifiers = method.getModifiers();
+        return Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers) && !isCglibRenamedMethod(method);
     }
 
     public static boolean isInitAnnotationPresent(Method method) {
@@ -221,31 +269,44 @@ public class ReflectionUtils {
     }
 
     public static List<Argument> introspectComputeMethod(Method method, List<GenericType> genericTypes) {
-        List<Argument> result = new ArrayList<>(method.getParameters().length);
-        String[] names = PARAMETER_NAME_DISCOVERER.getParameterNames(method);
+        if (method.isBridge())
+            throw new IllegalArgumentException("Bridge methods is not supported: " + method);
 
-        mainCycle:
-        for (int i = 0; i < names.length; i++) {
+        List<Argument> result = new ArrayList<>(method.getParameters().length);
+
+        //String[] names = PARAMETER_NAME_DISCOVERER.getParameterNames(method);
+
+        for (int i = 0, length = method.getParameters().length; i < length; i++) {
             Parameter parameter = method.getParameters()[i];
-            for (Class<? extends Annotation> annotationToIgnore : IGNORE_IN_METHODS) {
-                if (parameter.isAnnotationPresent(annotationToIgnore))
-                    continue mainCycle;
-            }
-            String name = names[i];
-            result.add(introspectComputeParameter(parameter, name, genericTypes));
+            if (isValidParameter(parameter))
+                result.add(introspectComputeParameter(parameter, parameter.getName(), genericTypes));
         }
         return result;
     }
 
+    // Check that parameter does not contain 'ignore' annotations
+    private static boolean isValidParameter(Parameter parameter) {
+        for (Class<? extends Annotation> annotationToIgnore : IGNORE_IN_METHODS) {
+            if (parameter.isAnnotationPresent(annotationToIgnore))
+                return false;
+        }
+
+        return true;
+    }
+
     public static List<InitArgument> introspectInitMethod(Method method, List<GenericType> genericTypes) {
+        if (method.isBridge())
+            throw new IllegalArgumentException("Bridge methods is not supported: " + method);
+
         List<InitArgument> result = new ArrayList<>(method.getParameters().length);
-        String[] names = PARAMETER_NAME_DISCOVERER.getParameterNames(method);
-        for (int i = 0; i < names.length; i++) {
+        //String[] names = PARAMETER_NAME_DISCOVERER.getParameterNames(method);
+
+        for (int i = 0, length = method.getParameters().length; i < length; i++) {
             Parameter parameter = method.getParameters()[i];
             if (parameter.isAnnotationPresent(BuiltInStartTimestampMs.class))
                 continue;
-            String name = names[i];
-            result.add(introspectInitParameter(parameter, name, genericTypes));
+            //String name = names[i];
+            result.add(introspectInitParameter(parameter, parameter.getName(), genericTypes));
         }
         return result;
     }
@@ -255,9 +316,9 @@ public class ReflectionUtils {
         Type typeAnnotation = method.getAnnotation(Type.class);
         DataType dt = null;
         GenericType genericType = null;
+
         if (typeAnnotation == null) {
             dt = extractType(method);
-            genericType = null;
         } else {
             for (GenericType gType : genericTypes) {
                 Pattern objectPattern = genericObjectPattern(gType);
@@ -302,11 +363,11 @@ public class ReflectionUtils {
                     break;
                 }
                 Pattern arrayPattern = genericArrayPattern(gType);
-                Matcher arrayMapper = arrayPattern.matcher(typeAnnotation.value());
-                if (arrayMapper.matches()) {
+                Matcher arrayMatcher = arrayPattern.matcher(typeAnnotation.value());
+                if (arrayMatcher.matches()) {
                     genericType = gType;
-                    dt = new ArrayDataType(arrayMapper.group("arrayNullable") != null,
-                            new ClassDataType(arrayMapper.group("nullable") != null));
+                    dt = new ArrayDataType(arrayMatcher.group("arrayNullable") != null,
+                            new ClassDataType(arrayMatcher.group("nullable") != null));
                     break;
                 }
             }
@@ -412,8 +473,6 @@ public class ReflectionUtils {
                 return TimebaseTypes.DATE_TIME_CONTAINER.getArrayType(nullable, elementNullable);
             } else if (annotatedElement.isAnnotationPresent(Decimal.class)) {
                 return TimebaseTypes.DECIMAL64_CONTAINER.getArrayType(nullable, elementNullable);
-            } else if (annotatedElement.isAnnotationPresent(Alphanumeric.class)) {
-                return TimebaseTypes.ALPHANUMERIC10_CONTAINER.getArrayType(nullable, elementNullable);
             }
         }
         return extractType(type, nullable, elementNullable);
@@ -569,14 +628,9 @@ public class ReflectionUtils {
         if (matcher.matches()) {
             boolean nullable = matcher.group("nullable") != null;
             String classes = matcher.group("classes");
-            try {
-                return new ClassDataType(nullable, introspectClasses(classes));
-            } catch (ClassNotFoundException exc) {
-                LOG.info().append("Class ").append(classes).append(" not found, so type '")
-                        .append(s).appendLast("' couldn't be parsed and created.");
-            } catch (Introspector.IntrospectionException e) {
-                LOG.info().append("Error while introspecting class ").append(classes)
-                        .append(". Message: ").appendLast(e.getMessage());
+            RecordClassDescriptor[] descriptors = introspectClasses(s, classes);
+            if (descriptors != null) {
+                return new ClassDataType(nullable, descriptors);
             }
         }
         matcher = OBJECT_ARRAY_PATTERN.matcher(s);
@@ -584,33 +638,43 @@ public class ReflectionUtils {
             boolean arrayNullable = matcher.group("arrayNullable") != null;
             boolean nullable = matcher.group("nullable") != null;
             String classes = matcher.group("classes");
-            try {
-                return new ArrayDataType(arrayNullable, new ClassDataType(nullable, introspectClasses(classes)));
-            } catch (ClassNotFoundException exc) {
-                LOG.info().append("Class ").append(classes).append(" not found, so type '")
-                        .append(s).appendLast("' couldn't be parsed and created.");
-            } catch (Introspector.IntrospectionException e) {
-                LOG.info().append("Error while introspecting class ").append(classes)
-                        .append(". Message: ").appendLast(e.getMessage());
+            RecordClassDescriptor[] descriptors = introspectClasses(s, classes);
+            if (descriptors != null) {
+                return new ArrayDataType(arrayNullable, new ClassDataType(nullable, descriptors));
             }
         }
         return null;
     }
 
-    private static RecordClassDescriptor[] introspectClasses(String classes) throws ClassNotFoundException, Introspector.IntrospectionException {
+    private static RecordClassDescriptor[] introspectClasses(String type, String classes) {
         String[] classNamesStr = classes.split(",");
         List<RecordClassDescriptor> descriptors = new ArrayList<>();
-        for (String className : classNamesStr) {
-            if (className != null && !className.trim().isEmpty()) {
-                Class<?> cls = Class.forName(className.trim());
-                descriptors.add(
-                    Introspector.createEmptyMessageIntrospector().introspectMemberClass("", cls)
-                );
+
+        String currentClass = null;
+        try {
+            for (String className : classNamesStr) {
+                currentClass = className;
+                if (className != null && !className.trim().isEmpty()) {
+                    Class<?> cls = Class.forName(className.trim());
+                    descriptors.add(
+                            Introspector.createEmptyMessageIntrospector().introspectMemberClass("", cls)
+                    );
+                }
             }
+        } catch (ClassNotFoundException exc) {
+            LOG.info().append("Class ").append(currentClass.trim()).append(" not found, so type '")
+                    .append(type).appendLast("' couldn't be parsed and created.");
+            return null;
+        } catch (Introspector.IntrospectionException e) {
+            LOG.info().append("Error while introspecting class ").append(currentClass)
+                    .append(". Message: ").appendLast(e.getMessage());
+            return null;
         }
 
         if (descriptors.size() == 0) {
-            throw new ClassNotFoundException(classes);
+            LOG.info().append("Error while introspecting type ").append(type)
+                    .append(". Classes not found.").commit();
+            return null;
         }
 
         return descriptors.toArray(new RecordClassDescriptor[0]);
@@ -623,5 +687,4 @@ public class ReflectionUtils {
     private static Pattern genericArrayPattern(GenericType genericType) {
         return Pattern.compile(String.format(GENERIC_ARRAY_PATTERN, genericType.getId()));
     }
-
 }
