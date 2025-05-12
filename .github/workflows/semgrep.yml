@@ -1,4 +1,4 @@
-name: Semgrep SAST - Security Only
+name: Semgrep SAST - Security Only Rules
 
 on:
   push:
@@ -33,70 +33,43 @@ jobs:
       - name: Run Semgrep Scan with Security Rules
         run: semgrep --config p/ci . --json > semgrep_output.json
 
-      # 6️⃣  Distil Semgrep JSON ➜ minimal summary the triage agent expects
-      - name: Extract Findings from Semgrep Output
-        run: |
-          jq -c '{results: [.results[] | {
-            path: .path,
-            rule_id: .check_id,
-            message: .extra.message,
-            start_line: .start.line,
-            code: .extra.lines
-          }]}' semgrep_output.json > semgrep_summary.json
-
-      # 7️⃣  Call your triage agent and save its answer
-      - name: Send Findings to Triage Agent
-        run: |
-          echo "Sending findings to triage agent..."
-          JSON_INPUT=$(jq -c . < semgrep_summary.json)
-          PAYLOAD=$(jq -n --arg input "$JSON_INPUT" '{chat_history: [], user_input: $input}')
-          curl -s \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.ELITEA_TOKEN }}" \
-            -X POST \
-            -d "$PAYLOAD" \
-            https://nexus.elitea.ai/api/v1/applications/predict/prompt_lib/2583/97 \
-            > agent_response.json
-          echo "Agent verdict saved to agent_response.json"
-          cat agent_response.json
-
-      # 8️⃣  Craft pretty Slack message (with direct links) & post it
-      - name: Send Agent Verdict to Slack
+      # 6️⃣  Process each finding individually
+      - name: Process Findings One by One
         env:
           REPO_URL: https://github.com/kenwynejohnes/TimeBase-CE/blob/main-6.1
         run: |
-          echo "Preparing Slack message…"
-          python3 <<'PY'
-          import json, re, os, pathlib
+          # Get the number of findings
+          NUM_FINDINGS=$(jq '.results | length' semgrep_output.json)
+          echo "Found $NUM_FINDINGS security issues to process"
 
-          # ---------- load artefacts ----------
-          findings = json.load(open("semgrep_summary.json"))["results"]
-          chat     = json.load(open("agent_response.json"))
-          assistant = next(m["content"] for m in chat["chat_history"] if m["role"] == "assistant")
+          # Process each finding
+          for i in $(seq 0 $((NUM_FINDINGS-1))); do
+            echo "Processing finding $((i+1)) of $NUM_FINDINGS..."
+            
+            # Extract single finding
+            jq -c "{results: [.results[$i]]}" semgrep_output.json > current_finding.json
+            
+            # Send to triage agent
+            echo "Sending to triage agent..."
+            JSON_INPUT=$(jq -c . < current_finding.json)
+            PAYLOAD=$(jq -n --arg input "$JSON_INPUT" '{chat_history: [], user_input: $input}')
+            curl -s \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ secrets.ELITEA_TOKEN }}" \
+              -X POST \
+              -d "$PAYLOAD" \
+              https://nexus.elitea.ai/api/v1/applications/predict/prompt_lib/2583/34 \
+              > agent_response.json
 
-          # ---------- split assistant answer by '---' separator ----------
-          blocks = re.split(r'\n\s*---\s*\n', assistant.strip())
+            # Format agent's response and prepare Slack message
+            python3 .github/workflows/process_finding.py
 
-          enhanced_blocks = []
-          for idx, blk in enumerate(blocks):
-              if idx < len(findings):
-                  f = findings[idx]
-                  link = (
-                      f"{os.environ['REPO_URL']}/{f['path']}#L{f['start_line']}"
-                  )
-                  blk = blk.rstrip() + f"\nLink:\n{link}"
-              enhanced_blocks.append(blk)
+            # Send to Slack
+            echo "Sending to Slack..."
+            curl -X POST -H 'Content-type: application/json' \
+                 --data @slack_payload.json \
+                 ${{ secrets.SLACK_WEBHOOK_URL }}
 
-          summary = "\n------------------------------\n\n".join(enhanced_blocks)
-
-          payload = {
-              "text": f"🔍 *Agent Verdict Summary:*\n```{summary}```"
-          }
-
-          pathlib.Path("slack_payload.json").write_text(json.dumps(payload, ensure_ascii=False))
-          PY
-
-          echo "Posting to Slack…"
-          curl -X POST -H 'Content-type: application/json' \
-               --data @slack_payload.json \
-               ${{ secrets.SLACK_WEBHOOK_URL }}
+            # Add a small delay between findings
+            sleep 2
+          done
