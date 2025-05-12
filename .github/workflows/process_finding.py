@@ -4,11 +4,14 @@ import json, os
 finding = json.load(open('current_finding.json'))['results'][0]
 response = json.load(open('agent_response.json'))
 
+# Extract the assistant's message from chat_history
+assistant_message = next(msg['content'] for msg in response['chat_history'] if msg['role'] == 'assistant')
+
 # Create link to the finding
 link = f"{os.environ['REPO_URL']}/{finding['path']}#L{finding['start']['line']}"
 
 # Prepare Slack message
-summary = f"{response}\n\nLink: {link}"
+summary = f"{assistant_message}\n\nLink: {link}"
 payload = {
     'text': f"🔍 *Security Finding - {finding['check_id']}*\n```{summary}```"
 }
