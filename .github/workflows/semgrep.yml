@@ -1,4 +1,4 @@
-name: Semgrep SAST - Security Only Rules
+name: Semgrep SAST - Security only rules
 
 on:
   push:
