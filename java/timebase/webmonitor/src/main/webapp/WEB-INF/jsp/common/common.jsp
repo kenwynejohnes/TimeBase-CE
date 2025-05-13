@@ -23,7 +23,7 @@
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">x</span>
         </button>
-        <strong>${alert_msg}</strong>
+        <strong><c:out value="${alert_msg}"/></strong>
     </div>
 </c:if>
 
