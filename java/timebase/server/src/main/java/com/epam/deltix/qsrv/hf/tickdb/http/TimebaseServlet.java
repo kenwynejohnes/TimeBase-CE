@@ -104,8 +104,12 @@ public class TimebaseServlet extends HttpServlet {
                         throw new RuntimeException(e);
                     }
                 }
-                else
+                else {
+                    // Configure unmarshaller to prevent XXE attacks
+                    um.setProperty(javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                    um.setProperty(javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
                     body = um.unmarshal(req.getInputStream());
+                }
 
                 if (body instanceof XmlRequest)
                     HTTPProtocol.validateVersion(((XmlRequest) body).version);
